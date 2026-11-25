@@ -1,0 +1,10 @@
+{
+  "name": "课本奇趣岛 - 人教版同步闯关",
+  "short_name": "课本奇趣岛",
+  "description": "人教版小学一至六年级语文、英语、数学、科学道法同步趣味记忆游戏",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FFF9F2",
+  "theme_color": "#FF7A45",
+  "lang": "zh-CN"
+}
