@@ -6,403 +6,181 @@
   <meta name="theme-color" content="#FF7A45" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="课本奇趣岛" />
-  <title>课本奇趣岛 - 人教版小学全科同步闯关记忆游戏</title>
+  <meta name="apple-mobile-web-app-title" content="二上语文" />
+  <title>二年级上册语文 · 趣味记课本</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="css/styles.css?v=1" />
+  <link rel="stylesheet" href="css/styles.css?v=2" />
 </head>
 <body>
   <div id="app" class="app-shell">
-    <!-- 顶部品牌与状态栏 -->
+    <!-- 极简顶部栏 -->
     <header class="top-bar">
-      <div class="brand">
-        <span class="brand-logo" aria-hidden="true">🏝️</span>
-        <div class="brand-text">
-          <h1>课本奇趣岛</h1>
-          <p class="brand-sub">人教版 1~6 年级同步趣味闯关</p>
+      <div class="brand" id="btn-home-logo" role="button" tabindex="0" aria-label="返回课本目录">
+        <span class="brand-book">📕</span>
+        <div class="brand-titles">
+          <h1>二年级上册 · 语文</h1>
+          <p>人教版课本同步趣味记忆</p>
         </div>
       </div>
 
-      <div class="top-actions">
-        <button id="btn-top-stars" class="pill-stat" type="button" aria-label="查看成长册与智慧星">
-          <span class="pill-icon">⭐</span>
-          <span id="stat-stars">0</span>
-        </button>
-        <button id="btn-settings" class="icon-btn" type="button" aria-label="发音与游戏设置">
-          ⚙️
+      <div class="top-right">
+        <div class="star-counter" title="全书已点亮星星">
+          <span>⭐</span>
+          <strong id="total-stars-text">0 / 24</strong>
+        </div>
+        <button id="btn-sound-toggle" type="button" class="sound-toggle-btn" aria-label="切换声音开关">
+          🔊 声音开
         </button>
       </div>
     </header>
 
-    <!-- 课本全局筛选器（在闯关岛与游乐场展示） -->
-    <section id="book-selector-bar" class="book-selector" aria-label="选择年级学期与学科">
-      <div class="selector-top-row">
-        <div id="grade-tabs" class="grade-scroll" role="tablist" aria-label="选择年级"></div>
-        <div id="semester-tabs" class="semester-switch" role="tablist" aria-label="选择上下册"></div>
-      </div>
-      <div id="subject-tabs" class="subject-grid" role="tablist" aria-label="选择学科"></div>
-    </section>
-
-    <!-- 主内容视图容器 -->
-    <main id="main-content" class="main-content">
-      <!-- 视图 1：课本单元闯关岛 -->
-      <section id="view-map" class="view active" aria-label="课本单元闯关地图">
-        <div id="current-book-banner" class="book-banner"></div>
-        <div id="unit-list" class="unit-list"></div>
+    <!-- 画面一：全书 8 个单元清晰目录页 -->
+    <main id="screen-home" class="screen active" aria-label="课本单元目录">
+      <section class="welcome-banner">
+        <div class="welcome-info">
+          <div class="welcome-title">✨ 选一个单元，边玩边背课本吧！</div>
+          <div class="welcome-sub" id="welcome-progress-desc">每个单元玩通 3 个小游戏，就能点亮 3 颗小星星</div>
+          <div class="total-bar-track">
+            <div id="total-bar-fill" class="total-bar-fill" style="width: 0%"></div>
+          </div>
+        </div>
+        <button id="btn-random-all" type="button" class="random-play-btn">
+          🎲 全书随机玩
+        </button>
       </section>
 
-      <!-- 视图 2：四种趣味记忆游乐场 -->
-      <section id="view-arcade" class="view" aria-label="趣味记忆游乐场">
-        <div id="arcade-mode-tabs" class="arcade-tabs" role="tablist" aria-label="选择记忆小游戏">
-          <button type="button" class="arcade-tab active" data-mode="bubble">🫧 打泡泡</button>
-          <button type="button" class="arcade-tab" data-mode="memory">🃏 翻翻乐</button>
-          <button type="button" class="arcade-tab" data-mode="tile">✍️ 接龙拼词</button>
-          <button type="button" class="arcade-tab" data-mode="rush">⚡ 60秒挑战</button>
-        </div>
+      <section id="unit-cards-list" class="unit-cards-list" aria-label="八个单元列表"></section>
 
-        <div class="scope-bar">
-          <span class="scope-label">出题范围：</span>
-          <div id="arcade-unit-scope" class="chip-scroll"></div>
-        </div>
-
-        <!-- 小游戏 1：听音/读题打泡泡 -->
-        <div id="arcade-bubble" class="arcade-panel active">
-          <div class="stage-card bubble-card">
-            <div class="stage-meta-row">
-              <span class="mini-badge" id="bubble-book-tag">同步特训</span>
-              <span class="combo-pill">🔥 连击 <strong id="bubble-combo">0</strong></span>
-            </div>
-
-            <div class="prompt-panel">
-              <p id="bubble-prompt" class="stage-prompt-text"></p>
-              <div id="bubble-audio-row" class="audio-inline-row hidden">
-                <button id="btn-bubble-speak" type="button" class="sound-pill-btn">🔊 点我听发音</button>
-                <button id="btn-bubble-slow" type="button" class="sound-pill-btn ghost">🐢 慢速听</button>
-              </div>
-            </div>
-
-            <p class="stage-sub-guide">👇 戳破写有正确答案的彩色魔法泡泡！</p>
-            <div id="bubble-stage" class="bubble-pond"></div>
-
-            <div id="bubble-feedback" class="feedback-box hidden"></div>
-            <button id="btn-bubble-next" type="button" class="primary-btn full-btn hidden">下一题 ➡️</button>
-          </div>
-        </div>
-
-        <!-- 小游戏 2：翻牌消消乐 -->
-        <div id="arcade-memory" class="arcade-panel">
-          <div class="stage-card">
-            <div class="stage-meta-row">
-              <div class="memory-counters">
-                <span>翻牌 <strong id="memory-moves">0</strong> 步</span>
-                <span>配对 <strong id="memory-pairs">0/6</strong></span>
-              </div>
-              <button id="btn-memory-restart" type="button" class="mini-action-btn">🔀 重新洗牌</button>
-            </div>
-            <p class="stage-sub-guide">翻开两张卡牌，把「课本题面/上句/单词」和「对应答案/下句/释义」配成一对！</p>
-
-            <div id="memory-board" class="memory-board"></div>
-
-            <div id="memory-victory" class="victory-box hidden">
-              <div class="victory-icon">🎉</div>
-              <h3>太棒啦！课本知识配对大满贯！</h3>
-              <p id="memory-victory-desc"></p>
-              <button id="btn-memory-again" type="button" class="primary-btn">再来一局 🃏</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 小游戏 3：古诗接龙与拼词填字 -->
-        <div id="arcade-tile" class="arcade-panel">
-          <div class="stage-card">
-            <div class="stage-meta-row">
-              <span class="mini-badge" id="tile-type-tag">接龙拼词</span>
-              <span class="combo-pill combo-blue">✨ 已拼对 <strong id="tile-streak">0</strong> 题</span>
-            </div>
-
-            <div class="prompt-panel">
-              <p id="tile-prompt" class="stage-prompt-text"></p>
-              <div id="tile-audio-row" class="audio-inline-row hidden">
-                <button id="btn-tile-speak" type="button" class="sound-pill-btn">🔊 听发音提示</button>
-              </div>
-            </div>
-
-            <p class="stage-sub-guide">按正确顺序点选下方魔法块填入槽位（点槽位可退回）：</p>
-            <div id="tile-slots" class="tile-slots"></div>
-            <div id="tile-bank" class="tile-bank"></div>
-
-            <div class="tile-btn-row">
-              <button id="btn-tile-clear" type="button" class="ghost-btn">🔄 清空重填</button>
-              <button id="btn-tile-hint" type="button" class="ghost-btn">💡 提示一块</button>
-            </div>
-
-            <div id="tile-feedback" class="feedback-box hidden"></div>
-            <button id="btn-tile-next" type="button" class="primary-btn full-btn hidden">下一题 ➡️</button>
-          </div>
-        </div>
-
-        <!-- 小游戏 4：60秒限时闪电挑战 -->
-        <div id="arcade-rush" class="arcade-panel">
-          <div class="stage-card">
-            <!-- 准备页 -->
-            <div id="rush-intro" class="rush-intro">
-              <div class="rush-hero-icon">⚡</div>
-              <h3>60 秒课本闪电战</h3>
-              <p>限时 60 秒快问快答，连击越高加分越多，答错还会自动收入艾宾浩斯错题本帮你查漏补缺！</p>
-              <div class="rush-best-pill">🏆 本机最高分：<strong id="rush-best-score">0</strong> 分</div>
-              <button id="btn-rush-start" type="button" class="primary-btn big-cta-btn">🚀 立即开始挑战</button>
-            </div>
-
-            <!-- 激战页 -->
-            <div id="rush-playing" class="rush-playing hidden">
-              <div class="rush-hud">
-                <span class="rush-time-pill">⏱️ <strong id="rush-timer">60</strong>s</span>
-                <span class="rush-score-pill">🏅 <strong id="rush-score">0</strong> 分</span>
-                <span class="combo-pill">🔥 ×<strong id="rush-combo">0</strong></span>
-              </div>
-              <div class="rush-bar-track">
-                <div id="rush-bar-fill" class="rush-bar-fill" style="width: 100%"></div>
-              </div>
-              <div class="prompt-panel rush-prompt-panel">
-                <p id="rush-prompt" class="stage-prompt-text"></p>
-              </div>
-              <div id="rush-options" class="choice-list"></div>
-            </div>
-
-            <!-- 结算页 -->
-            <div id="rush-result" class="victory-box hidden">
-              <div class="victory-icon">🏁</div>
-              <h3>时间到！挑战完成！</h3>
-              <div class="rush-stat-grid">
-                <div class="rush-stat-box">
-                  <span class="rush-num" id="rush-final-score">0</span>
-                  <span class="rush-lbl">本局得分</span>
-                </div>
-                <div class="rush-stat-box">
-                  <span class="rush-num" id="rush-final-correct">0</span>
-                  <span class="rush-lbl">答对题数</span>
-                </div>
-              </div>
-              <p id="rush-final-desc"></p>
-              <button id="btn-rush-again" type="button" class="primary-btn">⚡ 再战一局</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 视图 3：智能错题本与艾宾浩斯复习 -->
-      <section id="view-review" class="view" aria-label="艾宾浩斯智能错题本">
-        <div class="ebbinghaus-hero">
-          <div class="eb-header">
-            <div>
-              <h2>🧠 艾宾浩斯记忆错题本</h2>
-              <p>按照「立即 → 5分钟 → 30分钟 → 12小时 → 1天 → 3天」科学黄金周期循环巩固薄弱课本考点！</p>
-            </div>
-          </div>
-
-          <div class="eb-metrics">
-            <div class="eb-metric urgent">
-              <span class="eb-num" id="review-due-count">0</span>
-              <span class="eb-lbl">🔔 今日待复习</span>
-            </div>
-            <div class="eb-metric">
-              <span class="eb-num" id="review-total-count">0</span>
-              <span class="eb-lbl">📒 错题本总数</span>
-            </div>
-            <div class="eb-metric success">
-              <span class="eb-num" id="review-mastered-count">0</span>
-              <span class="eb-lbl">🎓 已彻底攻克</span>
-            </div>
-          </div>
-
-          <div class="eb-actions">
-            <button id="btn-start-due-review" type="button" class="primary-btn full-btn">
-              🎯 开始今日艾宾浩斯智能复习
-            </button>
-            <button id="btn-start-all-review" type="button" class="ghost-btn full-btn">
-              💪 强攻错题本全部薄弱项
-            </button>
-          </div>
-        </div>
-
-        <div class="filter-bar">
-          <div id="review-subject-filter" class="chip-scroll"></div>
-        </div>
-
-        <div id="mistake-list" class="mistake-list"></div>
-      </section>
-
-      <!-- 视图 4：成长荣誉册 -->
-      <section id="view-profile" class="view" aria-label="我的课本成长册">
-        <div class="profile-card">
-          <div class="profile-head">
-            <div class="profile-avatar" id="profile-avatar">🌱</div>
-            <div class="profile-title-box">
-              <span class="profile-tag">当前头衔</span>
-              <h2 id="profile-rank-badge">萌芽小学童</h2>
-              <p id="profile-encourage">每天闯一关，课本考点轻松装进脑海里！</p>
-            </div>
-          </div>
-
-          <div class="profile-stats-grid">
-            <div class="p-stat">
-              <strong id="profile-stars">0</strong>
-              <span>智慧星总数</span>
-            </div>
-            <div class="p-stat">
-              <strong id="profile-cleared-units">0/144</strong>
-              <span>已通关单元</span>
-            </div>
-            <div class="p-stat">
-              <strong id="profile-perfect-units">0</strong>
-              <span>三星满分关</span>
-            </div>
-            <div class="p-stat">
-              <strong id="profile-books-done">0/48</strong>
-              <span>整册点亮数</span>
-            </div>
-            <div class="p-stat">
-              <strong id="profile-accuracy">100%</strong>
-              <span>答题正确率</span>
-            </div>
-            <div class="p-stat">
-              <strong id="profile-reviewed">0</strong>
-              <span>记忆巩固次</span>
-            </div>
-          </div>
-        </div>
-
-        <h3 class="section-heading">🏅 荣誉勋章墙</h3>
-        <div id="badges-grid" class="badges-grid"></div>
-      </section>
+      <footer class="home-footer">
+        <button id="btn-reset-stars" type="button" class="subtle-reset-btn">重置星星记录</button>
+      </footer>
     </main>
 
-    <!-- 底部手机主导航栏 -->
-    <nav class="bottom-nav" aria-label="主功能导航">
-      <button class="nav-item active" data-view="map" type="button">
-        <span class="nav-icon">🏝️</span>
-        <span class="nav-label">闯关岛</span>
-      </button>
-      <button class="nav-item" data-view="arcade" type="button">
-        <span class="nav-icon">🎡</span>
-        <span class="nav-label">游乐场</span>
-      </button>
-      <button class="nav-item" data-view="review" type="button">
-        <span class="nav-icon-wrap">
-          <span class="nav-icon">🧠</span>
-          <span id="nav-due-badge" class="nav-badge hidden">0</span>
-        </span>
-        <span class="nav-label">错题本</span>
-      </button>
-      <button class="nav-item" data-view="profile" type="button">
-        <span class="nav-icon">🏆</span>
-        <span class="nav-label">成长册</span>
-      </button>
-    </nav>
-  </div>
-
-  <!-- 弹窗 1：单元课本速记闪卡弹窗 -->
-  <div id="modal-flashcards" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="flashcard-modal-title">
-    <div class="modal-backdrop" data-close-modal="modal-flashcards"></div>
-    <div class="modal-sheet modal-tall">
-      <div class="modal-handle"></div>
-      <button class="modal-close" type="button" data-close-modal="modal-flashcards" aria-label="关闭">✕</button>
-      <h2 id="flashcard-modal-title" class="sheet-title">📘 单元课本速记卡</h2>
-      <p class="sheet-sub">先浏览背记本单元 6 个课本核心考点（点喇叭可听真人发音/朗读），准备好就开始闯关摘三星吧！</p>
-
-      <div id="flashcard-list" class="flashcard-list"></div>
-
-      <div class="sheet-sticky-footer">
-        <button id="btn-flashcard-start-quest" type="button" class="primary-btn full-btn">⚔️ 我记住了，立即闯关摘星！</button>
+    <!-- 画面二：单元记忆乐园页 -->
+    <main id="screen-unit" class="screen" aria-label="单元记忆乐园">
+      <!-- 单元顶部返回条 -->
+      <div class="unit-nav-bar">
+        <button id="btn-back-home" type="button" class="back-btn">← 返回目录</button>
+        <div class="unit-current-name" id="unit-header-title">第一单元</div>
+        <div class="unit-header-stars" id="unit-header-stars">☆☆☆</div>
       </div>
-    </div>
-  </div>
 
-  <!-- 弹窗 2：单元综合闯关 & 艾宾浩斯复习特训舞台弹窗 -->
-  <div id="modal-quest" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="quest-title">
-    <div class="modal-backdrop"></div>
-    <div class="modal-sheet modal-tall quest-sheet">
-      <div class="quest-top-bar">
-        <div class="quest-head-info">
-          <h2 id="quest-title" class="quest-title">单元闯关</h2>
-          <span id="quest-step-text" class="quest-step-pill">1 / 6</span>
+      <!-- 四个一目了然的大模式按钮 -->
+      <nav id="mode-tabs" class="mode-tabs" aria-label="选择学习或游戏方式">
+        <button type="button" class="mode-tab active" data-mode="read">
+          <span class="m-icon">📖</span>
+          <span class="m-name">读课本</span>
+        </button>
+        <button type="button" class="mode-tab" data-mode="bubble">
+          <span class="m-icon">🫧</span>
+          <span class="m-name">戳泡泡</span>
+          <span class="m-star" id="tab-star-bubble"></span>
+        </button>
+        <button type="button" class="mode-tab" data-mode="spell">
+          <span class="m-icon">✍️</span>
+          <span class="m-name">拼名句</span>
+          <span class="m-star" id="tab-star-spell"></span>
+        </button>
+        <button type="button" class="mode-tab" data-mode="match">
+          <span class="m-icon">🃏</span>
+          <span class="m-name">消消乐</span>
+          <span class="m-star" id="tab-star-match"></span>
+        </button>
+      </nav>
+
+      <!-- 模式 1：📖 读课本（大字知识卡 + 遮盖背诵开关） -->
+      <section id="panel-read" class="game-panel active">
+        <div class="read-toolbar">
+          <span class="read-tip-text">💡 点喇叭听朗读，熟悉后去右边闯关拿星星！</span>
+          <button id="btn-toggle-mask" type="button" class="mask-toggle-btn">🙈 遮住答案背一背</button>
         </div>
-        <button id="btn-quest-close" class="modal-close-inline" type="button" aria-label="退出闯关">✕</button>
-      </div>
-
-      <div class="quest-progress-track">
-        <div id="quest-progress-fill" class="quest-progress-fill" style="width: 16%"></div>
-      </div>
-
-      <!-- 动态答题区 -->
-      <div id="quest-body" class="quest-body"></div>
-
-      <!-- 通关结算区 -->
-      <div id="quest-summary" class="quest-summary hidden"></div>
-    </div>
-  </div>
-
-  <!-- 弹窗 3：发音与家长设置弹窗 -->
-  <div id="modal-settings" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-    <div class="modal-backdrop" data-close-modal="modal-settings"></div>
-    <div class="modal-sheet">
-      <div class="modal-handle"></div>
-      <button class="modal-close" type="button" data-close-modal="modal-settings" aria-label="关闭">✕</button>
-      <h2 id="settings-title" class="sheet-title">⚙️ 发音与家长设置</h2>
-
-      <div class="setting-group">
-        <label class="setting-label">英语真人发音口音</label>
-        <div class="segmented-control" id="setting-accent">
-          <button type="button" data-accent="en-GB" class="seg-btn active">🇬🇧 英式发音（PEP推荐）</button>
-          <button type="button" data-accent="en-US" class="seg-btn">🇺🇸 美式发音</button>
+        <div id="read-cards-container" class="read-cards-list"></div>
+        <div class="panel-bottom-cta">
+          <button id="btn-read-go-play" type="button" class="primary-big-btn">🫧 读完啦，去玩戳泡泡拿星星！</button>
         </div>
-      </div>
+      </section>
 
-      <div class="setting-group">
-        <label class="setting-label">朗读语速</label>
-        <div class="segmented-control" id="setting-rate">
-          <button type="button" data-rate="0.72" class="seg-btn">🐢 慢速跟读</button>
-          <button type="button" data-rate="0.88" class="seg-btn active">🐥 儿童标准</button>
-          <button type="button" data-rate="1.0" class="seg-btn">🚀 正常原速</button>
+      <!-- 模式 2：🫧 戳泡泡（8题轻松闯关） -->
+      <section id="panel-bubble" class="game-panel">
+        <div id="bubble-play-box" class="stage-box">
+          <div class="stage-progress-row">
+            <span id="bubble-lesson-tag" class="lesson-badge">课文同步</span>
+            <span id="bubble-step-text" class="step-counter">第 1 / 8 题</span>
+          </div>
+          <div class="mini-progress-track">
+            <div id="bubble-progress-fill" class="mini-progress-fill" style="width: 12.5%"></div>
+          </div>
+
+          <div class="question-board">
+            <p id="bubble-question-text" class="question-big-text"></p>
+            <button id="btn-bubble-speak" type="button" class="speak-chip-btn">🔊 听课文原句</button>
+          </div>
+
+          <p class="gentle-guide">👇 点一点写着正确答案的大泡泡：</p>
+          <div id="bubble-pond" class="bubble-pond"></div>
+
+          <div id="bubble-feedback" class="gentle-feedback hidden"></div>
+          <button id="btn-bubble-next" type="button" class="primary-big-btn hidden">明白啦，下一题 ➡️</button>
         </div>
-      </div>
 
-      <div class="setting-group setting-row">
-        <div>
-          <div class="setting-label">出题自动播报英语发音</div>
-          <div class="setting-sub">英语题出现时自动播放真人单词读音</div>
+        <div id="bubble-finish-box" class="finish-box hidden"></div>
+      </section>
+
+      <!-- 模式 3：✍️ 拼名句（6题汉字积木接龙） -->
+      <section id="panel-spell" class="game-panel">
+        <div id="spell-play-box" class="stage-box">
+          <div class="stage-progress-row">
+            <span id="spell-lesson-tag" class="lesson-badge">必背名句</span>
+            <span id="spell-step-text" class="step-counter">第 1 / 6 题</span>
+          </div>
+          <div class="mini-progress-track">
+            <div id="spell-progress-fill" class="mini-progress-fill" style="width: 16.6%"></div>
+          </div>
+
+          <div class="question-board">
+            <p id="spell-prompt-text" class="question-big-text"></p>
+            <button id="btn-spell-speak" type="button" class="speak-chip-btn">🔊 听整句朗读</button>
+          </div>
+
+          <p class="gentle-guide">👇 按顺序点下方汉字块填入空格（点空格里的字可退回）：</p>
+          <div id="spell-slots" class="spell-slots"></div>
+          <div id="spell-tiles" class="spell-tiles"></div>
+
+          <div class="helper-btn-row" id="spell-helper-row">
+            <button id="btn-spell-clear" type="button" class="secondary-btn">🔄 清空重填</button>
+            <button id="btn-spell-hint" type="button" class="secondary-btn">💡 提示一个字</button>
+          </div>
+
+          <div id="spell-feedback" class="gentle-feedback hidden"></div>
+          <button id="btn-spell-retry" type="button" class="primary-big-btn hidden">🔄 我看清啦，亲手再拼一遍！</button>
         </div>
-        <button id="setting-autospeak-toggle" type="button" class="toggle-pill on" aria-pressed="true">开启</button>
-      </div>
 
-      <div class="setting-group setting-row">
-        <div>
-          <div class="setting-label">游戏闯关音效</div>
-          <div class="setting-sub">戳破泡泡、连击欢呼与通关号角声</div>
+        <div id="spell-finish-box" class="finish-box hidden"></div>
+      </section>
+
+      <!-- 模式 4：🃏 消消乐（橙蓝双色好友配对） -->
+      <section id="panel-match" class="game-panel">
+        <div id="match-play-box" class="stage-box">
+          <div class="stage-progress-row">
+            <span class="gentle-guide" style="margin:0;">👉 先点一张<strong class="txt-orange">橙色卡</strong>，再找配对的<strong class="txt-blue">蓝色卡</strong>！</span>
+            <span id="match-step-text" class="step-counter">已消 0 / 6 对</span>
+          </div>
+
+          <div id="match-grid" class="match-grid"></div>
         </div>
-        <button id="setting-sfx-toggle" type="button" class="toggle-pill on" aria-pressed="true">开启</button>
-      </div>
 
-      <div class="setting-group">
-        <button id="btn-test-voice" class="ghost-btn full-btn" type="button">🔊 试听英语真人发音（classroom）</button>
-        <p class="setting-hint">📱 手机若无声音，请关闭侧边静音键并调大媒体音量</p>
-      </div>
-
-      <div class="setting-danger">
-        <button id="btn-reset-progress" class="danger-link" type="button">清空本机闯关与错题记录</button>
-      </div>
-    </div>
+        <div id="match-finish-box" class="finish-box hidden"></div>
+      </section>
+    </main>
   </div>
 
   <!-- 轻提示与通关撒花层 -->
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
   <div id="confetti-layer" class="confetti-layer" aria-hidden="true"></div>
 
-  <script src="js/data-g1-g3.js?v=1"></script>
-  <script src="js/data-g4-g6.js?v=1"></script>
-  <script src="js/textbook-data.js?v=1"></script>
-  <script src="js/audio.js?v=1"></script>
-  <script src="js/game-logic.js?v=1"></script>
-  <script src="js/app.js?v=1"></script>
+  <script src="js/textbook-data.js?v=2"></script>
+  <script src="js/audio.js?v=2"></script>
+  <script src="js/game-logic.js?v=2"></script>
+  <script src="js/app.js?v=2"></script>
 </body>
 </html>
