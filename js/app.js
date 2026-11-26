@@ -1,7 +1,7 @@
 /**
- * 二年级上册语文 · 趣味记课本 极简人性化交互控制器
+ * 二年级语文（上册 + 下册）· 趣味记课本 极简人性化交互控制器
+ * - 顶部一键切换「📕 二年级上册」与「📘 二年级下册」
  * - 零复杂菜单：课本目录页 <-> 单元记忆乐园页
- * - 答对自动庆祝流畅进入下一题，答错温柔驻留讲解
  */
 (function () {
   'use strict';
@@ -15,7 +15,6 @@
   const sound = new AudioMod.SoundEngine();
   const $ = (id) => document.getElementById(id);
 
-  /** 读取本地轻量存档 */
   function loadState() {
     try {
       const raw = localStorage.getItem(Logic.STORAGE_KEY);
@@ -26,7 +25,6 @@
     }
   }
 
-  /** 保存进度并刷新星星显示 */
   function saveState() {
     try {
       localStorage.setItem(Logic.STORAGE_KEY, JSON.stringify(state));
@@ -37,10 +35,10 @@
   let state = loadState();
   sound.setEnabled(state.soundOn);
 
-  // 当前状态
-  let activeUnitId = 'u1'; // 'u1'..'u8' 或 'all'（全书随机玩）
+  // 当前运行态
+  let activeUnitId = 'u1'; // 具体单元 ID 或 'book_all'（本册随机玩）
   let activeMode = 'read'; // 'read' | 'bubble' | 'spell' | 'match'
-  let maskAnswers = false; // 读课本模式下是否遮盖答案背诵
+  let maskAnswers = false;
 
   // 🫧 戳泡泡状态
   let bubbleQueue = [];
@@ -61,7 +59,6 @@
   let matchClearedPairs = new Set();
   let matchBusy = false;
 
-  // 重置进度二次确认状态
   let resetPending = false;
   let resetTimer = null;
   let toastTimer = null;
@@ -105,10 +102,14 @@
     }
   }
 
-  /** 更新顶部星星计数与声音按钮 */
+  /** 更新顶部书名、上下册总星数与静音按钮 */
   function renderTopHeader() {
-    const { earned, total } = Logic.getTotalStarProgress(state, Data.UNITS);
-    $('total-stars-text').textContent = `${earned} / ${total}`;
+    const bookMeta = Data.getBookMeta(state.book);
+    $('brand-book-icon').textContent = bookMeta.icon;
+    $('brand-book-title').textContent = `${bookMeta.name} · 语文`;
+
+    const allProg = Logic.getTotalStarProgress(state, Data.UNITS);
+    $('total-stars-text').textContent = `${allProg.earned} / ${allProg.total}`;
 
     const sBtn = $('btn-sound-toggle');
     sBtn.textContent = state.soundOn ? '🔊 声音开' : '🔇 已静音';
@@ -127,50 +128,74 @@
 
   function renderHomeScreen() {
     renderTopHeader();
-    const { earned, total } = Logic.getTotalStarProgress(state, Data.UNITS);
+
+    // 渲染上下册双书切换器
+    $('book-switcher').innerHTML = Data.BOOKS.map((b) => {
+      const bUnits = Data.getUnitsByBook(b.id);
+      const prog = Logic.getTotalStarProgress(state, bUnits);
+      const isActive = state.book === b.id;
+      return `
+        <button type="button" class="book-tab ${isActive ? 'active' : ''}" data-book="${b.id}" role="tab" aria-selected="${isActive}">
+          <span class="book-tab-left">
+            <span>${b.icon}</span>
+            <span>${esc(b.name)}</span>
+          </span>
+          <span class="book-tab-stars">⭐ ${prog.earned}/${prog.total}</span>
+        </button>
+      `;
+    }).join('');
+
+    const curUnits = Data.getUnitsByBook(state.book);
+    const bookMeta = Data.getBookMeta(state.book);
+    const { earned, total } = Logic.getTotalStarProgress(state, curUnits);
     const pct = total > 0 ? Math.round((earned / total) * 100) : 0;
 
+    const banner = $('welcome-banner');
+    banner.dataset.book = String(state.book);
+    $('welcome-book-heading').textContent = `✨ ${bookMeta.name} · 选一个单元开玩吧！`;
     $('total-bar-fill').style.width = `${pct}%`;
     $('welcome-progress-desc').textContent =
       earned === 0
         ? '每个单元玩通 3 个小游戏，就能点亮 3 颗小星星！'
         : earned >= total
-          ? '👑 太厉害啦！整本语文书 24 颗星星全部点亮啦！'
-          : `已经收集 ${earned} 颗小星星，继续加油点亮整本书吧！`;
+          ? `👑 太棒啦！${bookMeta.name} 24 颗星星全部点亮啦！`
+          : `本册已收集 ${earned} / ${total} 颗小星星，继续加油吧！`;
 
-    $('unit-cards-list').innerHTML = Data.UNITS.map((u) => {
-      const stars = Logic.getUnitStarCount(state, u.id);
-      const rec = state.unitModesCleared[u.id] || {};
-      const starStr = [1, 2, 3].map((n) => (n <= stars ? '⭐' : '☆')).join('');
+    $('unit-cards-list').innerHTML = curUnits
+      .map((u) => {
+        const stars = Logic.getUnitStarCount(state, u.id);
+        const rec = state.unitModesCleared[u.id] || {};
+        const starStr = [1, 2, 3].map((n) => (n <= stars ? '⭐' : '☆')).join('');
 
-      return `
-        <article class="unit-card ${stars === 3 ? 'all-lit' : ''}" data-open-unit="${u.id}">
-          <div class="u-card-top">
-            <div class="u-avatar" style="background:${u.softBg};">${u.icon}</div>
-            <div class="u-main">
-              <div class="u-title-row">
-                <h2 class="u-title">${esc(u.title)}</h2>
-                <span class="u-stars" aria-label="已得${stars}颗星">${starStr}</span>
+        return `
+          <article class="unit-card ${stars === 3 ? 'all-lit' : ''}" data-open-unit="${u.id}">
+            <div class="u-card-top">
+              <div class="u-avatar" style="background:${u.softBg};">${u.icon}</div>
+              <div class="u-main">
+                <div class="u-title-row">
+                  <h2 class="u-title">${esc(u.title)}</h2>
+                  <span class="u-stars" aria-label="已得${stars}颗星">${starStr}</span>
+                </div>
+                <p class="u-lessons">${esc(u.lessonsSummary)}</p>
               </div>
-              <p class="u-lessons">${esc(u.lessonsSummary)}</p>
             </div>
-          </div>
 
-          <div class="u-quick-pills">
-            <button type="button" class="u-pill" data-unit="${u.id}" data-go-mode="read">📖 读课本</button>
-            <button type="button" class="u-pill ${rec.bubble ? 'done' : ''}" data-unit="${u.id}" data-go-mode="bubble">
-              🫧 戳泡泡 ${rec.bubble ? '⭐' : ''}
-            </button>
-            <button type="button" class="u-pill ${rec.spell ? 'done' : ''}" data-unit="${u.id}" data-go-mode="spell">
-              ✍️ 拼名句 ${rec.spell ? '⭐' : ''}
-            </button>
-            <button type="button" class="u-pill ${rec.match ? 'done' : ''}" data-unit="${u.id}" data-go-mode="match">
-              🃏 消消乐 ${rec.match ? '⭐' : ''}
-            </button>
-          </div>
-        </article>
-      `;
-    }).join('');
+            <div class="u-quick-pills">
+              <button type="button" class="u-pill" data-unit="${u.id}" data-go-mode="read">📖 读课本</button>
+              <button type="button" class="u-pill ${rec.bubble ? 'done' : ''}" data-unit="${u.id}" data-go-mode="bubble">
+                🫧 戳泡泡 ${rec.bubble ? '⭐' : ''}
+              </button>
+              <button type="button" class="u-pill ${rec.spell ? 'done' : ''}" data-unit="${u.id}" data-go-mode="spell">
+                ✍️ 拼名句 ${rec.spell ? '⭐' : ''}
+              </button>
+              <button type="button" class="u-pill ${rec.match ? 'done' : ''}" data-unit="${u.id}" data-go-mode="match">
+                🃏 消消乐 ${rec.match ? '⭐' : ''}
+              </button>
+            </div>
+          </article>
+        `;
+      })
+      .join('');
   }
 
   // ==================== 画面二：单元记忆乐园页 ====================
@@ -185,8 +210,9 @@
   }
 
   function updateUnitHeaderAndTabs() {
-    if (activeUnitId === 'all') {
-      $('unit-header-title').textContent = '🎲 全书八个单元 · 随机大闯关';
+    if (activeUnitId === 'book_all') {
+      const bookMeta = Data.getBookMeta(state.book);
+      $('unit-header-title').textContent = `🎲 ${bookMeta.name} · 随机大闯关`;
       $('unit-header-stars').textContent = '🌟';
       $('tab-star-bubble').textContent = '';
       $('tab-star-spell').textContent = '';
@@ -210,6 +236,10 @@
     });
   }
 
+  function getActiveScopeItems() {
+    return Data.getItemsByScope(activeUnitId, state.book);
+  }
+
   function switchUnitMode(mode) {
     clearAutoTimer();
     sound.stopSpeak();
@@ -224,10 +254,8 @@
 
   // -------------------- 模式 1：📖 读课本 --------------------
   function renderReadPanel() {
-    const items =
-      activeUnitId === 'all'
-        ? Logic.shuffle(Data.ALL_ITEMS).slice(0, 12)
-        : Data.getItemsByUnit(activeUnitId);
+    const rawItems = getActiveScopeItems();
+    const items = activeUnitId === 'book_all' ? Logic.shuffle(rawItems).slice(0, 12) : rawItems;
 
     const maskBtn = $('btn-toggle-mask');
     maskBtn.classList.toggle('active', maskAnswers);
@@ -254,7 +282,7 @@
 
   // -------------------- 模式 2：🫧 戳泡泡 --------------------
   function startBubbleGame() {
-    const items = Data.getItemsByUnit(activeUnitId);
+    const items = getActiveScopeItems();
     bubbleQueue = Logic.buildBubbleRound(items, { count: 8 });
     bubbleIdx = 0;
     bubbleCorrectCount = 0;
@@ -311,7 +339,6 @@
       fb.innerHTML = `<strong>🎉 答对啦！真棒！</strong>`;
       fb.classList.remove('hidden');
 
-      // 答对自动 0.85 秒流畅切入下一题，省去多余点击！
       autoNextTimer = setTimeout(() => {
         advanceBubbleStep();
       }, 850);
@@ -346,7 +373,7 @@
 
   // -------------------- 模式 3：✍️ 拼名句 --------------------
   function startSpellGame() {
-    const items = Data.getItemsByUnit(activeUnitId);
+    const items = getActiveScopeItems();
     spellQueue = Logic.buildSpellRound(items, { count: 6 });
     spellIdx = 0;
     spellChosen = [];
@@ -446,7 +473,7 @@
 
   // -------------------- 模式 4：🃏 消消乐 --------------------
   function startMatchGame() {
-    const items = Data.getItemsByUnit(activeUnitId);
+    const items = getActiveScopeItems();
     matchDeck = Logic.buildMatchDeck(items, { pairCount: 6 });
     matchSelectedIdx = null;
     matchClearedPairs = new Set();
@@ -480,7 +507,6 @@
     const card = matchDeck[idx];
     if (!card || matchClearedPairs.has(card.pairId)) return;
 
-    // 第一次点击，或者再次点了同一边的颜色卡 -> 直接切换选中，友好无惩罚！
     if (matchSelectedIdx === null) {
       sound.playClick();
       matchSelectedIdx = idx;
@@ -497,14 +523,12 @@
 
     const firstCard = matchDeck[matchSelectedIdx];
     if (firstCard.side === card.side) {
-      // 点了另一张同色卡，直接顺滑切换选中
       sound.playClick();
       matchSelectedIdx = idx;
       renderMatchGrid();
       return;
     }
 
-    // 一橙一蓝配对判定
     if (firstCard.pairId === card.pairId) {
       matchClearedPairs.add(card.pairId);
       matchSelectedIdx = null;
@@ -539,16 +563,13 @@
     sound.playVictory();
     launchConfetti();
 
-    const playBoxId = `${mode}-play-box`;
-    const finishBoxId = `${mode}-finish-box`;
-    $(playBoxId).classList.add('hidden');
-
-    const finishBox = $(finishBoxId);
+    $(`${mode}-play-box`).classList.add('hidden');
+    const finishBox = $(`${mode}-finish-box`);
     finishBox.classList.remove('hidden');
 
     const starMsg =
-      activeUnitId === 'all'
-        ? '全书随机挑战大满贯！'
+      activeUnitId === 'book_all'
+        ? '本册随机挑战大满贯！'
         : res.newlyLit
           ? `⭐ 成功点亮本单元 1 颗新星星（当前 ${res.unitStars}/3 星）！`
           : `本单元已集齐 ${res.unitStars}/3 颗星星！`;
@@ -576,6 +597,18 @@
       showHomeScreen();
     });
 
+    // 上下册一键切换
+    $('book-switcher').addEventListener('click', (e) => {
+      const tab = e.target.closest('[data-book]');
+      if (!tab) return;
+      const nextBook = Number(tab.dataset.book);
+      if (nextBook === state.book) return;
+      sound.playClick();
+      state.book = nextBook;
+      saveState();
+      renderHomeScreen();
+    });
+
     $('btn-sound-toggle').addEventListener('click', () => {
       state.soundOn = !state.soundOn;
       sound.setEnabled(state.soundOn);
@@ -590,10 +623,9 @@
 
     $('btn-random-all').addEventListener('click', () => {
       sound.playClick();
-      openUnitScreen('all', 'bubble');
+      openUnitScreen('book_all', 'bubble');
     });
 
-    // 首页单元卡片点击（支持点快捷标签直达具体模式，或点卡片进读课本）
     $('unit-cards-list').addEventListener('click', (e) => {
       const quickPill = e.target.closest('[data-go-mode]');
       if (quickPill) {
@@ -610,7 +642,6 @@
       }
     });
 
-    // 单元顶部 4 个模式切换
     $('mode-tabs').addEventListener('click', (e) => {
       const tab = e.target.closest('[data-mode]');
       if (!tab) return;
@@ -618,7 +649,6 @@
       switchUnitMode(tab.dataset.mode);
     });
 
-    // 读课本面板互动
     $('btn-toggle-mask').addEventListener('click', () => {
       sound.playClick();
       maskAnswers = !maskAnswers;
@@ -649,7 +679,6 @@
       switchUnitMode('bubble');
     });
 
-    // 🫧 戳泡泡面板互动
     $('bubble-pond').addEventListener('click', (e) => {
       const b = e.target.closest('[data-b-idx]');
       if (!b) return;
@@ -668,7 +697,6 @@
       }
     });
 
-    // ✍️ 拼名句面板互动
     $('spell-tiles').addEventListener('click', (e) => {
       const tileBtn = e.target.closest('[data-s-tile]');
       if (!tileBtn || spellLocked) return;
@@ -704,7 +732,6 @@
     $('btn-spell-hint').addEventListener('click', () => {
       const puzzle = spellQueue[spellIdx];
       if (!puzzle || spellLocked) return;
-      // 先去掉前面已填错的字，再自动补上下一个正确汉字
       while (spellChosen.length > 0) {
         const lastIdx = spellChosen.length - 1;
         if (spellChosen[lastIdx].text === puzzle.chars[lastIdx]) break;
@@ -741,14 +768,12 @@
       }
     });
 
-    // 🃏 消消乐面板互动
     $('match-grid').addEventListener('click', (e) => {
       const btn = e.target.closest('[data-m-idx]');
       if (!btn) return;
       handleMatchCardClick(Number(btn.dataset.mIdx), btn);
     });
 
-    // 通关框内“再玩一次 / 下一个模式”委托
     $('screen-unit').addEventListener('click', (e) => {
       const replayBtn = e.target.closest('[data-replay-mode]');
       if (replayBtn) {
@@ -764,7 +789,6 @@
       }
     });
 
-    // 底部二次确认重置星星进度
     $('btn-reset-stars').addEventListener('click', (e) => {
       const btn = e.currentTarget;
       if (!resetPending) {
@@ -779,11 +803,13 @@
       }
       resetPending = false;
       btn.textContent = '重置星星记录';
+      const curBook = state.book;
       state = Logic.createDefaultState();
+      state.book = curBook;
       sound.setEnabled(state.soundOn);
       saveState();
       renderHomeScreen();
-      showToast('✨ 已重置全书星星进度');
+      showToast('✨ 已重置星星进度');
     });
   }
 

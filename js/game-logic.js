@@ -1,7 +1,6 @@
 /**
- * 二年级上册语文 · 趣味记忆游戏核心逻辑
- * 极简三颗星设计：
- * 每个单元共有 3 种趣味玩法，玩通任意一种即点亮对应星星（最多 3 颗星 ⭐⭐⭐）：
+ * 二年级语文（上下册）· 趣味记忆游戏核心逻辑
+ * 每个单元共有 3 种趣味玩法，玩通任意一种即点亮对应星星（每单元 3 星，每册 24 星，上下册共 48 星）：
  * - bubble: 🫧 戳泡泡（课本问答 8 题闯关）
  * - spell:  ✍️ 拼名句（古诗韵文成语积木接龙 6 题闯关）
  * - match:  🃏 消消乐（橙蓝双色课本配对 6 对消除）
@@ -15,13 +14,13 @@
   /** 创建默认轻量存档 */
   function createDefaultState() {
     return {
+      book: 1, // 1=二年级上册, 2=二年级下册
       soundOn: true,
-      // unitStars: { u1: { bubble: true, spell: false, match: true }, ... }
       unitModesCleared: {}
     };
   }
 
-  /** 安全归一化存档 */
+  /** 安全归一化存档（无缝兼容单册存档） */
   function normalizeState(raw) {
     const def = createDefaultState();
     if (!raw || typeof raw !== 'object') return def;
@@ -40,6 +39,7 @@
     }
 
     return {
+      book: Number(raw.book) === 2 ? 2 : 1,
       soundOn: typeof raw.soundOn === 'boolean' ? raw.soundOn : true,
       unitModesCleared: cleaned
     };
@@ -52,7 +52,7 @@
     return GAME_MODES.reduce((sum, m) => sum + (rec[m] ? 1 : 0), 0);
   }
 
-  /** 计算全书总星星数与最大星星数 */
+  /** 计算指定单元集合（单册或全套上下册）的星星进度 */
   function getTotalStarProgress(state, units) {
     let earned = 0;
     const total = (units || []).length * 3;
@@ -64,7 +64,7 @@
 
   /** 标记某单元的某个游戏玩法已通关 */
   function markUnitModeCleared(state, unitId, mode) {
-    if (!unitId || unitId === 'all' || !GAME_MODES.includes(mode)) {
+    if (!unitId || unitId === 'book_all' || !GAME_MODES.includes(mode)) {
       return { newlyLit: false, unitStars: 0 };
     }
     if (!state.unitModesCleared[unitId]) {
@@ -92,8 +92,6 @@
 
   /**
    * 生成「🫧 戳泡泡」一局题目队列（默认 8 道题，每题 4 个大号彩色泡泡）
-   * @param {Array} items 候选知识点
-   * @param {object} [opts] { count = 8, rng = Math.random }
    */
   function buildBubbleRound(items, opts = {}) {
     const rng = opts.rng || Math.random;
@@ -135,15 +133,12 @@
 
   /**
    * 生成单个知识点的「✍️ 拼名句」汉字积木谜题
-   * @param {object} item 带有 spellTarget 的课本知识点
-   * @param {function} [rng]
    */
   function createSpellPuzzle(item, rng = Math.random) {
     const cleanTarget = String(item.spellTarget || '').replace(/[，。！？、\s]/g, '').trim();
     const chars = Array.from(cleanTarget);
     const usedChars = new Set(chars);
 
-    // 从干扰项和常用诗词字中抽取 3 个不重复干扰字，总共约 5~10 块大号字块
     const noiseCandidates = [];
     for (const d of item.distractors || []) {
       for (const ch of Array.from(String(d).replace(/[，。！？、（）()\s]/g, ''))) {
@@ -210,8 +205,6 @@
 
   /**
    * 生成「🃏 消消乐」橙蓝双色好友配对卡组（默认 6 对 = 12 张明牌卡片，零重名冲突）
-   * - side = 'left'（暖橙色题面/上句卡）
-   * - side = 'right'（晴空蓝答案/下句卡）
    */
   function buildMatchDeck(items, opts = {}) {
     const rng = opts.rng || Math.random;
