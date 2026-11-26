@@ -1,6 +1,6 @@
 /* ==========================================================================
-   二年级上册语文 · 趣味记课本 极简童趣样式表
-   设计原则：大字易读 · 温暖护眼米色纸张 · 零冗余层级 · 触控回弹直觉化
+   二年级语文（上下册）· 趣味记课本 极简童趣样式表
+   设计原则：大字易读 · 温暖护眼米色纸张 · 极简上下册切换 · 触控回弹直觉化
    ========================================================================== */
 
 :root {
@@ -15,6 +15,7 @@
   --orange-soft: #FFF1EB;
 
   --blue: #2563EB;
+  --blue-dark: #1D4ED8;
   --blue-soft: #EFF6FF;
   --blue-border: #93C5FD;
 
@@ -24,9 +25,6 @@
 
   --amber: #F59E0B;
   --amber-soft: #FEF3C7;
-
-  --rose: #EF4444;
-  --rose-soft: #FEF2F2;
 
   --radius-xl: 22px;
   --radius-lg: 16px;
@@ -94,7 +92,7 @@ button {
 
 .brand-titles h1 {
   margin: 0;
-  font-size: 19px;
+  font-size: 18.5px;
   font-weight: 900;
   color: var(--ink-main);
   letter-spacing: 0.3px;
@@ -156,6 +154,72 @@ button {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ==================== 极简上下册双书切换器 ==================== */
+.book-switcher {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.book-tab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 15px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-white);
+  border: 2px solid var(--line-soft);
+  box-shadow: 0 3px 0 var(--line-soft);
+  color: var(--ink-sub);
+  transition: all 0.15s;
+}
+
+.book-tab:active {
+  transform: translateY(2px);
+}
+
+.book-tab-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15.5px;
+  font-weight: 900;
+}
+
+.book-tab-stars {
+  font-size: 12.5px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #F1F5F9;
+  color: var(--ink-sub);
+}
+
+.book-tab.active[data-book="1"] {
+  background: var(--orange-soft);
+  border-color: var(--orange);
+  box-shadow: 0 3px 0 var(--orange);
+  color: var(--orange-dark);
+}
+
+.book-tab.active[data-book="1"] .book-tab-stars {
+  background: #FFFFFF;
+  color: var(--orange-dark);
+}
+
+.book-tab.active[data-book="2"] {
+  background: var(--blue-soft);
+  border-color: var(--blue);
+  box-shadow: 0 3px 0 var(--blue);
+  color: var(--blue-dark);
+}
+
+.book-tab.active[data-book="2"] .book-tab-stars {
+  background: #FFFFFF;
+  color: var(--blue-dark);
+}
+
 /* ==================== 首页：欢迎条与八个单元卡片 ==================== */
 .welcome-banner {
   background: linear-gradient(135deg, #FF8A5B 0%, #FF6238 100%);
@@ -167,7 +231,12 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  box-shadow: 0 8px 22px rgba(255, 107, 61, 0.22);
+  box-shadow: 0 8px 22px rgba(255, 107, 61, 0.2);
+}
+
+.welcome-banner[data-book="2"] {
+  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.2);
 }
 
 .welcome-info {
@@ -204,12 +273,12 @@ button {
 .random-play-btn {
   flex-shrink: 0;
   background: #FFFFFF;
-  color: var(--orange-dark);
+  color: var(--ink-main);
   font-size: 14px;
   font-weight: 900;
   padding: 11px 15px;
   border-radius: var(--radius-lg);
-  box-shadow: 0 4px 0 rgba(180, 50, 10, 0.25);
+  box-shadow: 0 4px 0 rgba(15, 23, 42, 0.18);
   transition: transform 0.1s;
 }
 
@@ -310,7 +379,7 @@ button {
 
 .u-pill.done {
   background: var(--amber-soft);
-  border-color: #FCD34D;
+  border: 1.5px solid #FCD34D;
   color: #92400E;
 }
 
@@ -915,12 +984,18 @@ button {
   100% { transform: translateY(92vh) rotate(500deg); opacity: 0; }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 420px) {
   .welcome-banner {
     flex-direction: column;
     align-items: stretch;
   }
   .u-quick-pills {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .book-tab {
+    padding: 10px 11px;
+  }
+  .book-tab-left {
+    font-size: 14px;
   }
 }
