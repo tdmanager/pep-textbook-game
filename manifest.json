@@ -1,7 +1,7 @@
 {
-  "name": "二年级上册语文 · 趣味记课本",
-  "short_name": "二上语文",
-  "description": "人教版（统编版）二年级上册语文全册八个单元同步趣味记忆游戏",
+  "name": "二年级语文 · 趣味记课本（上下册）",
+  "short_name": "二年级语文",
+  "description": "人教版（统编版）二年级语文上册与下册全套同步趣味记忆游戏",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#FFFBF5",
