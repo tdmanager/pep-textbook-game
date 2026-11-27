@@ -220,6 +220,159 @@ button {
   color: var(--blue-dark);
 }
 
+/* ==================== 跨册找课文搜索框与结果面板 ==================== */
+.lesson-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-white);
+  border: 2px solid var(--line-soft);
+  border-radius: 999px;
+  padding: 8px 14px;
+  margin-bottom: 14px;
+  transition: border-color 0.15s;
+}
+
+.lesson-search-bar:focus-within {
+  border-color: var(--orange);
+}
+
+.search-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.lesson-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-main);
+}
+
+.lesson-search-input::placeholder {
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.search-clear-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #E2E8F0;
+  color: var(--ink-sub);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.search-results-panel {
+  background: var(--bg-white);
+  border: 2px solid #FDBA74;
+  border-radius: var(--radius-xl);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 8px 20px rgba(255, 122, 69, 0.12);
+}
+
+.search-hit-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #FFF9F5;
+  border: 1.5px solid #FED7AA;
+}
+
+.search-hit-title {
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--ink-main);
+}
+
+.search-hit-sub {
+  font-size: 12px;
+  color: var(--ink-sub);
+  margin-top: 2px;
+}
+
+.search-hit-go {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--orange-dark);
+  background: #FFFFFF;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1.5px solid #FDBA74;
+  flex-shrink: 0;
+}
+
+/* 单元卡片上的单篇课文直达书签标签 */
+.u-lesson-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 7px 0 0;
+}
+
+.u-lesson-chip {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #334155;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  padding: 3px 9px;
+  border-radius: 999px;
+  transition: all 0.12s;
+}
+
+.u-lesson-chip:hover,
+.u-lesson-chip:active {
+  background: var(--orange-soft);
+  border-color: var(--orange);
+  color: var(--orange-dark);
+}
+
+/* 单元内部顶部单篇课文筛选条 */
+.lesson-filter-scroll {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+  margin-bottom: 12px;
+}
+
+.lesson-filter-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.lesson-tab-chip {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  background: var(--bg-white);
+  border: 1.8px solid var(--line-soft);
+  color: var(--ink-sub);
+}
+
+.lesson-tab-chip.active {
+  background: var(--ink-main);
+  border-color: var(--ink-main);
+  color: #FFFFFF;
+}
+
 /* ==================== 首页：欢迎条与八个单元卡片 ==================== */
 .welcome-banner {
   background: linear-gradient(135deg, #FF8A5B 0%, #FF6238 100%);
