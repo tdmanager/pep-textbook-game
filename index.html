@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="二年级语文" />
   <title>二年级语文（上下册）· 趣味记课本</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="css/styles.css?v=3" />
+  <link rel="stylesheet" href="css/styles.css?v=4" />
 </head>
 <body>
   <div id="app" class="app-shell">
@@ -34,15 +34,31 @@
       </div>
     </header>
 
-    <!-- 画面一：课本目录页（仅含极简上下册切换 + 8 个单元卡片） -->
+    <!-- 画面一：课本目录页 -->
     <main id="screen-home" class="screen active" aria-label="课本单元目录">
       <!-- 直观好点的上下册双书切换胶囊 -->
       <div id="book-switcher" class="book-switcher" role="tablist" aria-label="选择二年级上册或下册"></div>
 
+      <!-- 极简跨上下册找课文搜索栏 -->
+      <div class="lesson-search-bar">
+        <span class="search-icon" aria-hidden="true">🔍</span>
+        <input
+          id="lesson-search-input"
+          type="search"
+          class="lesson-search-input"
+          placeholder="搜课文或古诗（如：刘胡兰、树之歌、咏柳、节气…）"
+          autocomplete="off"
+        />
+        <button id="btn-search-clear" type="button" class="search-clear-btn hidden" aria-label="清空搜索">✕</button>
+      </div>
+
+      <!-- 搜索结果直达面板（平时隐藏，输入时跨册秒出） -->
+      <section id="search-results-panel" class="search-results-panel hidden" aria-label="搜索课文结果"></section>
+
       <section id="welcome-banner" class="welcome-banner">
         <div class="welcome-info">
           <div class="welcome-title" id="welcome-book-heading">✨ 二年级上册 · 选一个单元开玩吧！</div>
-          <div class="welcome-sub" id="welcome-progress-desc">本册已点亮 0 / 24 颗小星星</div>
+          <div class="welcome-sub" id="welcome-progress-desc">本册已点亮 0 / 24 颗小星星（点课文名可单课专练）</div>
           <div class="total-bar-track">
             <div id="total-bar-fill" class="total-bar-fill" style="width: 0%"></div>
           </div>
@@ -66,6 +82,9 @@
         <div class="unit-current-name" id="unit-header-title">第一单元</div>
         <div class="unit-header-stars" id="unit-header-stars">☆☆☆</div>
       </div>
+
+      <!-- 本单元单篇课文切换胶囊（可玩全单元，也可点《刘胡兰》只练这一课！） -->
+      <div id="unit-lesson-chips" class="lesson-filter-scroll" role="tablist" aria-label="按单篇课文筛选"></div>
 
       <!-- 四个一目了然的大模式按钮 -->
       <nav id="mode-tabs" class="mode-tabs" aria-label="选择学习或游戏方式">
@@ -180,11 +199,11 @@
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
   <div id="confetti-layer" class="confetti-layer" aria-hidden="true"></div>
 
-  <script src="js/data-s1.js?v=3"></script>
-  <script src="js/data-s2.js?v=3"></script>
-  <script src="js/textbook-data.js?v=3"></script>
-  <script src="js/audio.js?v=3"></script>
-  <script src="js/game-logic.js?v=3"></script>
-  <script src="js/app.js?v=3"></script>
+  <script src="js/data-s1.js?v=4"></script>
+  <script src="js/data-s2.js?v=4"></script>
+  <script src="js/textbook-data.js?v=4"></script>
+  <script src="js/audio.js?v=4"></script>
+  <script src="js/game-logic.js?v=4"></script>
+  <script src="js/app.js?v=4"></script>
 </body>
 </html>
